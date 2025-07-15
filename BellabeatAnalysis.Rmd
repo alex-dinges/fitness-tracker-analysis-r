@@ -1,0 +1,375 @@
+# %% [markdown]
+# # Bellabeat Case Study in R
+# #### Author: Alex Dinges
+# #### Date: 5/13/2025
+# 
+
+# %% [markdown]
+# ### Business Summary:
+# Bellabeat is a a high-tech company that manufactures health-focused smart products for women. Their wearable products collect health data on activity, sleep, stress, and reproductive health to help empower women with insights into their own health and habits. 
+
+# %% [markdown]
+# ### The Analysis Process:
+# * Ask - Define the business objective & stakeholder expectations 
+# * Prepare - Identifying and collecting relevant data
+# * Process - Cleaning and transforming the data for analysis 
+# * Analyze - Exploring trends and representing them through visualizations
+# * Share & Act - Presenting findings and making final reccomendations 
+
+# %% [markdown]
+# ## ASK
+# #### Business Task: 
+# The goal is to improve Bellabeat's marketing straegy by evaluating smart device fitness data and identifying trends to inform high-level recommendations to apply to a Bellabeat product. 
+# 
+# #### Stakeholders:
+# 1. **Urška Sršen**: Bellabeat’s cofounder and Chief Creative Officer 
+# 2. **Sando Mur**: Mathematician and Bellabeat’s cofounder; key member of the Bellabeat executive team
+# 
+# #### Leading Questions:
+# 1. What are some trends in smart device usage?
+# 2. How could these trends apply to Bellabeat customers?
+# 3. How could these trends help influence Bellabeat marketing strategy?
+
+# %% [markdown]
+# ## PREPARE
+# #### Data Sources:
+# [FitBit Fitness Tracker Data](https://www.kaggle.com/datasets/arashnic/fitbit)
+# 
+# This data comes from a distributed survey via Amazon Mechanical Turk. It represents Fitbit data from 30 users who consented to the submission of personal tracker data between 3/12/2016 and 5/12/2016. It contains comprehensive data including minute-level output for physical activity, heart rate, and sleep monitoring, and more metrics. The data was seperated by two distinct zip files containing datasets for two seperate date ranges: 3/12/16 - 4/11/16 and 4/12/16 - 5/12/16.
+# 
+# #### Data Limitations:
+# * **Credibility & Originality** - The data was provided via 3rd party and was not validated with the original source
+# * **Current** - The data used is from 2016 and is therefore outdated and not current 
+# * **Data Bias** - Sampling bias may be present as the sample size is only 30 individuals. Each person willingly consented to the use of their personal data, meaning this is not a random sample and it may not be representative of the population as a whole
+# 
+
+# %% [markdown]
+# ## PROCESS
+# #### Step 1: Preparation
+# 
+# * Setting Up My Environment in R:
+
+# %% [code] {"execution":{"iopub.status.busy":"2025-05-21T22:27:29.031270Z","iopub.execute_input":"2025-05-21T22:27:29.033512Z","iopub.status.idle":"2025-05-21T22:27:30.876182Z","shell.execute_reply":"2025-05-21T22:27:30.874308Z"}}
+# Load necessary libraries
+
+library (tidyverse)
+library (ggplot2)
+library (dplyr)
+library (tidyr)
+library (readr)
+library (lubridate)
+library (janitor)
+library (here)
+library (skimr)
+
+
+# %% [code] {"execution":{"iopub.status.busy":"2025-05-21T22:27:30.879967Z","iopub.execute_input":"2025-05-21T22:27:30.912844Z","iopub.status.idle":"2025-05-21T22:27:31.548692Z","shell.execute_reply":"2025-05-21T22:27:31.546783Z"}}
+# Loading datasets from each date range 
+## A "1" in the file name represents the first data range from 3/12/16 - 4/11/16
+## A "2" in the file name represents the second data range from 4/12/16 - 5/12/16
+
+activity_1 <- read_csv("/kaggle/input/fitbit/mturkfitbit_export_3.12.16-4.11.16/Fitabase Data 3.12.16-4.11.16/dailyActivity_merged.csv")
+weight_1 <- read_csv("/kaggle/input/fitbit/mturkfitbit_export_3.12.16-4.11.16/Fitabase Data 3.12.16-4.11.16/weightLogInfo_merged.csv")
+activity_2 <- read_csv("/kaggle/input/fitbit/mturkfitbit_export_4.12.16-5.12.16/Fitabase Data 4.12.16-5.12.16/dailyActivity_merged.csv")
+weight_2 <- read_csv("/kaggle/input/fitbit/mturkfitbit_export_4.12.16-5.12.16/Fitabase Data 4.12.16-5.12.16/weightLogInfo_merged.csv")
+sleep <- read_csv("/kaggle/input/fitbit/mturkfitbit_export_4.12.16-5.12.16/Fitabase Data 4.12.16-5.12.16/sleepDay_merged.csv")
+
+
+# %% [markdown]
+# #### Step 2: Explore the data
+
+# %% [code] {"execution":{"iopub.status.busy":"2025-05-21T22:27:31.551471Z","iopub.execute_input":"2025-05-21T22:27:31.552968Z","iopub.status.idle":"2025-05-21T22:27:31.709289Z","shell.execute_reply":"2025-05-21T22:27:31.707457Z"}}
+# Preview the datasets
+
+head(activity_1)
+head(weight_1)
+head(activity_2)
+head(weight_2)
+head(sleep)
+
+# %% [markdown]
+# #### Step 3: Clean the Data
+# 
+# 
+# 
+
+# %% [code] {"execution":{"iopub.status.busy":"2025-05-21T22:27:31.712013Z","iopub.execute_input":"2025-05-21T22:27:31.713552Z","iopub.status.idle":"2025-05-21T22:27:31.808418Z","shell.execute_reply":"2025-05-21T22:27:31.806520Z"}}
+# Merge the respective data tables for the separate date ranges together
+
+activity_combined <- bind_rows(activity_1, activity_2)
+weight_combined <- bind_rows(weight_1, weight_2)
+
+# Preview the combined data tables
+
+head(activity_combined)
+head(weight_combined)
+head(sleep)
+
+# %% [code] {"execution":{"iopub.status.busy":"2025-05-21T22:27:31.811313Z","iopub.execute_input":"2025-05-21T22:27:31.812808Z","iopub.status.idle":"2025-05-21T22:27:31.842177Z","shell.execute_reply":"2025-05-21T22:27:31.839994Z"}}
+# Identify number of participants in each dataset
+
+n_distinct(activity_combined$Id)
+n_distinct(weight_combined$Id)
+n_distinct(sleep$Id)
+
+# %% [code] {"execution":{"iopub.status.busy":"2025-05-21T22:27:31.845134Z","iopub.execute_input":"2025-05-21T22:27:31.846694Z","iopub.status.idle":"2025-05-21T22:27:31.959232Z","shell.execute_reply":"2025-05-21T22:27:31.957376Z"}}
+# Convert date and times to consistent format 
+## Ensuring they are not text/character inputs
+
+# activity
+activity_combined$ActivityDate <- as.Date(activity_combined$ActivityDate, format = "%m/%d/%y")
+
+# weight
+weight_combined$Date <- as.Date(weight_combined$Date, format = "%m/%d/%y")
+
+# sleep
+sleep$SleepDay <- as.Date(sleep$SleepDay, format = "%m/%d/%y")
+
+# Preview the newly formatted tables
+
+head(activity_combined)
+head(weight_combined)
+head(sleep)
+
+
+# %% [code] {"execution":{"iopub.status.busy":"2025-05-21T22:27:31.962155Z","iopub.execute_input":"2025-05-21T22:27:31.963681Z","iopub.status.idle":"2025-05-21T22:27:31.984564Z","shell.execute_reply":"2025-05-21T22:27:31.982641Z"}}
+# Remove any duplicates
+
+activity_combined <- distinct(activity_combined)
+weight_combined <- distinct(weight_combined)
+sleep <- distinct(sleep)
+
+
+# %% [code] {"execution":{"iopub.status.busy":"2025-05-21T22:27:31.987328Z","iopub.execute_input":"2025-05-21T22:27:31.988783Z","iopub.status.idle":"2025-05-21T22:27:32.016937Z","shell.execute_reply":"2025-05-21T22:27:32.015105Z"}}
+# Check for any missing/null values 
+
+colSums(is.na(activity_combined))
+colSums(is.na(weight_combined))
+colSums(is.na(sleep))
+
+# %% [markdown]
+# * The only null values exist in the Fat column of the weight data. Since this column is irrelevant to our analysis and dropping the values would remove 94/100 rows, we will leave them.
+
+# %% [markdown]
+# #### Step 4: Transform the Data for Use
+
+# %% [code] {"execution":{"iopub.status.busy":"2025-05-21T22:27:32.019948Z","iopub.execute_input":"2025-05-21T22:27:32.021570Z","iopub.status.idle":"2025-05-21T22:27:32.169464Z","shell.execute_reply":"2025-05-21T22:27:32.167603Z"}}
+# Add weekday columns to help analysis
+
+activity_combined$Weekday <- weekdays(activity_combined$ActivityDate)
+weight_combined$Weekday <- weekdays(weight_combined$Date)
+sleep$Weekday <- weekdays(sleep$SleepDay)
+
+# Reorder weekday column beside date
+activity_combined <- activity_combined %>% select(Id, ActivityDate, Weekday, everything())
+weight_combined <- weight_combined %>% select(Id, Date, Weekday, everything())
+sleep <- sleep %>% select(Id, SleepDay, Weekday, everything())
+
+# Calculate and add total active minutes column for analysis
+activity_combined <- activity_combined %>%
+  mutate(TotalActiveMinutes = VeryActiveMinutes + FairlyActiveMinutes + LightlyActiveMinutes)  
+
+# Renaming date columns to ensure consistency: 
+activity_combined <- activity_combined %>% rename (Date = ActivityDate)
+sleep <- sleep %>% rename (Date = SleepDay)
+
+# Preview final tables
+head(activity_combined)
+head(weight_combined)
+head(sleep)
+
+# %% [markdown]
+# ## ANALYZE 
+# 
+# #### Exploratory Data Analysis:
+
+# %% [code] {"execution":{"iopub.status.busy":"2025-05-21T22:27:32.172128Z","iopub.execute_input":"2025-05-21T22:27:32.173687Z","iopub.status.idle":"2025-05-21T22:27:32.213139Z","shell.execute_reply":"2025-05-21T22:27:32.211271Z"}}
+# Explore summary statistics 
+
+# activity
+activity_combined %>% 
+  select(TotalSteps, Calories, TotalActiveMinutes, SedentaryMinutes) %>%
+  summary()
+
+# weight
+weight_combined %>% 
+  select(WeightPounds, BMI) %>%
+  summary()
+
+# sleep
+sleep %>%
+  select(TotalMinutesAsleep, TotalTimeInBed, TotalSleepRecords) %>%
+  summary()
+
+# %% [markdown]
+# #### Quick Statistics Overview
+# * **Average total steps**: 7,281 steps per day
+# * **Average calories burned**: 2,266 calories per day
+# * **Average total active minutes**: 218.5 minutes per day
+# * **Average sedentary minutes**: 992.5 minutes per day
+# * **Average minutes asleep**: 419.2 minutes per day
+
+# %% [markdown]
+# #### Summary
+# * Users took an average of 7,281 steps per day - burning on average 2,266 calories per day
+# * Total active minutes (very active, fairly active, and lightly active minutes combined) was 218.5 minutes per day compared to 992.5 minutes of sedentary time per day. Meaning users spent approximately 4.5 times more time sedentary than active.
+# * Users got 419.2 minutes of sleep per night - approximately 7 hours of sleep on average 
+
+# %% [markdown]
+# ## SHARE
+# 
+# **Relationships to explore:**
+# 1.  Does day of week impact activity level? 
+# 2.  How does activity level intensity differ by day?
+# 3.  What proportion of each activity makes up users' day?
+# 4.  Does amount of sleep correlate with amount of time active? 
+
+# %% [markdown]
+# #### 1. Average Number of Steps per Weekday 
+
+# %% [code] {"execution":{"iopub.status.busy":"2025-05-21T22:27:32.215957Z","iopub.execute_input":"2025-05-21T22:27:32.217554Z","iopub.status.idle":"2025-05-21T22:27:32.899577Z","shell.execute_reply":"2025-05-21T22:27:32.897499Z"}}
+# Define the days of week in order and order the column
+days_of_the_week <- c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")
+activity_combined$Weekday <- factor(activity_combined$Weekday, levels = days_of_the_week, ordered = TRUE)
+
+# Calculate the average steps per day
+avg_steps <- activity_combined %>%
+    group_by(Weekday) %>%
+    summarize (avg_steps = mean(TotalSteps)) 
+avg_steps
+
+# Create bar chart 
+ggplot(data = avg_steps, aes(x = Weekday, y = avg_steps)) + 
+    geom_bar (stat = "identity", fill = "steelblue") + 
+    labs (title = "Steps per Day", x = "Day of the Week", y = "Average Number of Steps")
+    
+
+# %% [markdown]
+# **Key Findings:**
+# * Steps fluctuate daily and there is no particular correlation with day of the week and steps taken
+# 
+# **Conclusion** - Activity level is inconsistent throughout the week
+
+# %% [markdown]
+# #### 2. Average Activity per Day by Intensity
+
+# %% [code] {"execution":{"iopub.status.busy":"2025-05-21T22:36:28.490866Z","iopub.execute_input":"2025-05-21T22:36:28.492655Z","iopub.status.idle":"2025-05-21T22:36:28.836184Z","shell.execute_reply":"2025-05-21T22:36:28.834196Z"}}
+# Summarize average active minutes 
+active_mins <- activity_combined %>%
+    group_by (Weekday) %>%
+    summarise(Avg_VeryActiveMins = mean(VeryActiveMinutes),
+            Avg_FairlyActiveMins = mean(FairlyActiveMinutes),
+            Avg_LightlyActiveMins = mean(LightlyActiveMinutes))
+active_mins
+
+# Pivot data to long format for stacked chart
+active_mins_long <- active_mins %>%
+    pivot_longer(
+            cols = starts_with("Avg_"),
+            names_to = "Intensity",
+            values_to = "Minutes")
+# Set the order for the column stacks
+active_mins_long$Intensity <- factor(active_mins_long$Intensity, levels = c("Avg_LightlyActiveMins", "Avg_FairlyActiveMins", "Avg_VeryActiveMins"))
+
+# Create a stacked bar chart 
+ggplot(data = active_mins_long, aes(x = Weekday, y = Minutes, fill = Intensity)) +
+       geom_bar(stat = "identity", position = "stack") +
+       labs(title = "Average Avtivity Minutes per Day", x = "Day of the Week", y = "Average Minutes") + 
+    theme_minimal()
+
+
+# %% [markdown]
+# **Key Findings:**
+# * The difference between time very active and fairly active per day is marginal and relatively consistent 
+# * The majority of user activity per day is lightly active minutes
+# * On average the most active day is Thursdays and least active is Fridays
+# 
+# **Conclusion** - Activity is low intensity. Motivation drops before the weekend.
+
+# %% [markdown]
+# #### 3. Proportion of Active Minutes by Activity Type 
+
+# %% [code] {"execution":{"iopub.status.busy":"2025-05-21T22:27:33.342291Z","iopub.execute_input":"2025-05-21T22:27:33.343881Z","iopub.status.idle":"2025-05-21T22:27:33.844656Z","shell.execute_reply":"2025-05-21T22:27:33.842569Z"}}
+# Average each activity into one table
+all_activity <- activity_combined %>%
+    summarise(Very_Active = mean(VeryActiveMinutes),
+            Fairly_Active = mean(FairlyActiveMinutes),
+            Lightly_Active = mean(LightlyActiveMinutes),
+            Sedentary = mean(SedentaryMinutes))
+
+# Convert to long format for use
+all_activity_long <- all_activity %>%
+    pivot_longer(cols = c(Very_Active, Fairly_Active, Lightly_Active, Sedentary),
+            names_to = "ActivityType",
+            values_to = "Minutes")
+all_activity_long
+
+# Calculate percentages and legend lables
+all_activity_long <- all_activity_long %>%
+    mutate(Percentage = Minutes / sum(Minutes) * 100, Activity_Type = paste0(ActivityType, "(", round(Percentage, 1), "%)"))
+
+# Create pie chart
+ggplot(data = all_activity_long, aes(x = "", y = Minutes, fill = Activity_Type)) +
+    geom_bar (stat = "identity", width = 1, color = "white") +
+    coord_polar(theta = "y") + 
+    labs(title = "Proportion of Average Minutes by Activity Type") +
+    theme_void() +
+    theme(legend.text = element_text(size = 12))
+
+# %% [markdown]
+# **Key Findings:**
+# * Sedentary minutes makes up on average 82% of daily activity
+# * Only 18% of users' day is spent active, where fairly active and very active represent under 3% of that 
+# 
+# **Concusion** - Users on average sit or stand still for the majority of the day
+
+# %% [markdown]
+# #### 4. Sleep Patterns vs Steps
+
+# %% [code] {"execution":{"iopub.status.busy":"2025-05-21T22:27:33.848081Z","iopub.execute_input":"2025-05-21T22:27:33.849723Z","iopub.status.idle":"2025-05-21T22:27:34.090991Z","shell.execute_reply":"2025-05-21T22:27:34.088857Z"}}
+# Combine the data
+sleep_steps <- left_join(activity_combined, sleep, by = "Id", relationship = "many-to-many")
+
+# Calculate averages per Id
+average_sleep_steps <- sleep_steps %>%
+    group_by(Id) %>%
+    summarise(AverageSleep = mean(TotalMinutesAsleep), AverageSteps = mean(TotalSteps)) %>%
+    drop_na()
+
+ggplot(data = average_sleep_steps, aes(x = (AverageSleep / 60), y = AverageSteps)) +
+    geom_point(color = "steelblue") +
+    labs(title = "Relationship Between Sleep and Steps", x = "Total Hours Asleep", y = "Total Steps") +
+    theme_minimal()
+
+# %% [markdown]
+# **Key Findings:**
+# * There is no distinct correlation between amount of sleep and steps taken per day
+# * The majority of users get between 6 to 9 hours of sleep and walk between 2500 and 10000 steps per day
+# 
+# **Conclusion** - Sleep does not distinctly effect activity level
+# 
+
+# %% [markdown]
+# #### Summary
+# * **Steps per Day** - There is inconsistency in activity level throughout the week
+# * **Activity Intensity** - Activity is low intensity. Motivation drops before the weekend.
+# * **Activity Type** - Users sit or stand still for the majority of the day
+# * **Sleep** - Sleep does not effect activity level
+
+# %% [markdown]
+# ## ACT
+# #### Marketing Recommendations:
+# 1.  Increase Consistency of Activity
+#     * **Recommendation** - Introduce a daily step challenge above or around the current average of 7,281 steps. The challenge could be gameified with a public leaderboard where users can compete with peers.
+# 2.  Improve Activity Quality 
+#     * **Recommendation** - Suggest workouts per intensity level based on users prior week's type of active minutes. 
+# 3.  Generate Motivation 
+#     * **Recommendation** - Implement suggested weekly activity goals and weekly goal tracking. Introduce a rewards system that can consist of badges or medals to share on social media or other options like earning a promotional discount. 
+# 4.  Reduce the Proportion of Sedentary Minutes
+#     * **Recommendation** - Utilize ping notifications to remind users to move around during periods of extended inactivity.
+# 5. Promote Interconnectivity of Bellabeat App
+#     * **Recommendation** - Concentrate messaging around the interconnectivity that the app incorporates in everday life. Highlight its tracking capabilities for steps, calories, activity level, and sleep to help users understand their health and improve lifestyle habbits. 
+
+# %% [markdown]
+# #### Conclusion
+# By evaluating fitness data from a competing health tracking device (Fitbit), we are able to make connections on the type of data collected and how users might utiize it in their fitness journeys. This helps us understand how Bellabeat can leverage its own user data to improve marketing strategy and overall user experience. 
